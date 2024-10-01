@@ -1,10 +1,10 @@
-const request = require("supertest");
 const { ApolloServer } = require("apollo-server");
 const typeDefs = require("../../graphql/schema");
 const resolvers = require("../../resolvers");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+// Initialize the Apollo server
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -12,26 +12,26 @@ const server = new ApolloServer({
 });
 
 describe("User Flow Integration Tests", () => {
-  let testServer;
-
-  beforeAll(() => {
-    testServer = request(server.listen());
+  beforeAll(async () => {
+    await prisma.$connect();
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany();
     await prisma.$disconnect();
   });
 
   it("should register a user", async () => {
-    const response = await testServer.post("/").send({
+    const response = await server.executeOperation({
       query: `
-          mutation {
-            register(email: "integration@example.com", password: "IntegrationPass123")
-          }
-        `,
+        mutation {
+          register(email: "integration@example.com", password: "IntegrationPass123")
+        }
+      `,
     });
 
-    expect(response.body.data.register).toBe(
+    expect(response.errors).toBeUndefined();
+    expect(response.data.register).toBe(
       "Registration successful, verify your email"
     );
   });
@@ -42,30 +42,30 @@ describe("User Flow Integration Tests", () => {
       where: { email: "integration@example.com" },
     });
 
-    const response = await testServer.post("/").send({
+    const response = await server.executeOperation({
       query: `
-          mutation {
-            verifyAccount(email: "integration@example.com", otp: "${user.otp}")
-          }
-        `,
+        mutation {
+          verifyAccount(email: "integration@example.com", otp: "${user.otp}")
+        }
+      `,
     });
 
-    expect(response.body.data.verifyAccount).toBe(
-      "Account successfully verified"
-    );
+    expect(response.errors).toBeUndefined();
+    expect(response.data.verifyAccount).toBe("Account successfully verified");
   });
 
   it("should log in the user and return a JWT token", async () => {
-    const response = await testServer.post("/").send({
+    const response = await server.executeOperation({
       query: `
-          mutation {
-            login(email: "integration@example.com", password: "IntegrationPass123") {
-              token
-            }
+        mutation {
+          login(email: "integration@example.com", password: "IntegrationPass123") {
+            token
           }
-        `,
+        }
+      `,
     });
 
-    expect(response.body.data.login).toHaveProperty("token");
+    expect(response.errors).toBeUndefined();
+    expect(response.data.login).toHaveProperty("token");
   });
 });
