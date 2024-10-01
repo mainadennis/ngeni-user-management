@@ -64,7 +64,10 @@ describe("LoginPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
-    const successMessage = await screen.findByText(/login successful/i);
+    // Wait for the success message to appear
+    const successMessage = await screen.findByText(/login successful/i, {
+      exact: false,
+    });
     expect(successMessage).toBeInTheDocument();
   });
 });
