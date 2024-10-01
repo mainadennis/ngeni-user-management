@@ -8,7 +8,7 @@ const LandingPage = () => {
 
   return (
     <div>
-      <Typography variant="h3">Welcome to Ngenu!</Typography>
+      <Typography variant="h3">Welcome to Ngeni!</Typography>
       <Button variant="contained" onClick={() => navigate("/register")}>
         Register
       </Button>
