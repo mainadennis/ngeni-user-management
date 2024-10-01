@@ -7,6 +7,7 @@ import LoginPage from "./components/LoginPage";
 import VerifyPage from "./components/VerifyPage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import Dashboard from "./components/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -18,7 +19,14 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/verify" element={<VerifyPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
     </ApolloProviderComponent>
