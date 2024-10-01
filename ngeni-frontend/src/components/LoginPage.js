@@ -3,18 +3,23 @@ import React, { useState } from "react";
 import { TextField, Button, Typography } from "@mui/material";
 import { useMutation } from "@apollo/client";
 import { LOGIN_USER } from "../graphql/mutations";
+import { setToken } from "../utils/token";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginUser] = useMutation(LOGIN_USER);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const { data } = await loginUser({ variables: { email, password } });
-      localStorage.setItem("token", data.login.token); // Save JWT token
+      const token = data.login.token;
+      setToken(token);
       alert("Login successful!");
+      navigate("/dashboard"); // Redirect to dashboard
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
