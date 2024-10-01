@@ -9,16 +9,24 @@ import { useNavigate } from "react-router-dom";
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loginUser] = useMutation(LOGIN_USER);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [loginUser, { loading, error }] = useMutation(LOGIN_USER, {
+    onCompleted: (data) => {
+      setSuccessMessage("Login successful");
+      const token = data.login.token;
+      setToken(token);
+    },
+    onError: (err) => {
+      alert(err.message);
+    },
+  });
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await loginUser({ variables: { email, password } });
-      const token = data.login.token;
-      setToken(token);
-      alert("Login successful!");
+      await loginUser({ variables: { email, password } });
       navigate("/dashboard"); // Redirect to dashboard
     } catch (error) {
       alert(`Error: ${error.message}`);
@@ -45,9 +53,17 @@ const LoginPage = () => {
           required
           fullWidth
         />
-        <Button type="submit" variant="contained" color="primary">
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="contained"
+          color="primary"
+        >
           Login
         </Button>
+
+        {successMessage && <div>{successMessage}</div>}
+        {error && <div>{error.message}</div>}
       </form>
     </div>
   );
