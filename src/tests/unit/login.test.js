@@ -2,6 +2,7 @@ const { login } = require("../../resolvers/mutation");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 jest.mock("@prisma/client");
+require("dotenv").config();
 
 describe("User Login", () => {
   let mockContext;
