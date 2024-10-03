@@ -14,7 +14,7 @@ describe("User Login", () => {
           findUnique: jest.fn().mockResolvedValue({
             id: 1,
             email: "test@example.com",
-            password: bcrypt.hashSync("SecurePass123", 10),
+            password: bcrypt.hashSync("SecurePass123@", 10),
             isVerified: true,
           }),
         },
@@ -25,7 +25,7 @@ describe("User Login", () => {
   it("should return a JWT token for a valid user", async () => {
     const result = await login(
       null,
-      { email: "test@example.com", password: "SecurePass123" },
+      { email: "test@example.com", password: "SecurePass123@" },
       mockContext
     );
 
@@ -50,14 +50,14 @@ describe("User Login", () => {
     mockContext.prisma.user.findUnique.mockResolvedValueOnce({
       id: 1,
       email: "test@example.com",
-      password: bcrypt.hashSync("SecurePass123", 10),
+      password: bcrypt.hashSync("SecurePass123@", 10),
       isVerified: false,
     });
 
     await expect(
       login(
         null,
-        { email: "test@example.com", password: "SecurePass123" },
+        { email: "test@example.com", password: "SecurePass123@" },
         mockContext
       )
     ).rejects.toThrow("Account not verified");

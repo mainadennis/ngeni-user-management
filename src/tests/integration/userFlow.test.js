@@ -25,7 +25,7 @@ describe("User Flow Integration Tests", () => {
     const response = await server.executeOperation({
       query: `
         mutation {
-          register(email: "integration@example.com", password: "IntegrationPass123")
+          register(email: "integration@example.com", password: "IntegrationPass123@")
         }
       `,
     });
@@ -58,7 +58,7 @@ describe("User Flow Integration Tests", () => {
     const response = await server.executeOperation({
       query: `
         mutation {
-          login(email: "integration@example.com", password: "IntegrationPass123") {
+          login(email: "integration@example.com", password: "IntegrationPass123@") {
             token
           }
         }

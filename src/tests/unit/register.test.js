@@ -24,7 +24,7 @@ describe("User Registration", () => {
 
   it("should create a user with a hashed password", async () => {
     const email = "test@example.com";
-    const password = "SecurePass123";
+    const password = "SecurePass123@";
 
     await register(null, { email, password }, mockContext);
 
@@ -45,7 +45,7 @@ describe("User Registration", () => {
 
     await register(
       null,
-      { email: "test@example.com", password: "SecurePass123" },
+      { email: "test@example.com", password: "SecurePass123@" },
       mockContext
     );
 
