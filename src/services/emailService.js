@@ -10,6 +10,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+/**
+ * Sends an email containing a One-Time Password (OTP) to the specified email address.
+ *
+ * @param {string} email - The email address to send the OTP to.
+ * @param {string} otp - The One-Time Password to be included in the email.
+ * @returns {Promise} A Promise that resolves when the email is successfully sent.
+ */
 exports.sendOTPEmail = async (email, otp) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM,
@@ -21,6 +28,13 @@ exports.sendOTPEmail = async (email, otp) => {
   return await transporter.sendMail(mailOptions);
 };
 
+/**
+ * Sends a password reset email to the specified email address.
+ *
+ * @param {string} email - The email address to send the reset email to.
+ * @param {string} resetToken - The token used for resetting the password.
+ * @returns {Promise} A promise that resolves when the email is sent successfully.
+ */
 exports.sendResetEmail = async (email, resetToken) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM,

@@ -5,6 +5,15 @@ const { generateOTP } = require("../utils/otpGenerator");
 const { checkPasswordStrength, validateEmail } = require("../utils/helpers");
 const crypto = require("crypto");
 
+/**
+ * Register a new user with the provided email and password.
+ *
+ * @param {Object} parent - The parent object in the resolver chain.
+ * @param {Object} args - The arguments passed to the resolver containing email and password.
+ * @param {Object} context - The context object containing Prisma client and other utilities.
+ * @returns {String} A message indicating the registration status.
+ * @throws {Error} If the email format is invalid, password is weak, email already exists, or registration fails.
+ */
 const register = async (parent, { email, password }, context) => {
   try {
     // Validate email format
@@ -58,6 +67,18 @@ const register = async (parent, { email, password }, context) => {
   }
 };
 
+/**
+ * Asynchronous function to handle user login.
+ * Validates the email format, checks if the user exists, and verifies the password.
+ * Handles account locking after multiple failed attempts and account verification status.
+ * Resets failed attempts upon successful login and generates a JWT token for authentication.
+ *
+ * @param {Object} parent - The parent object in the resolver chain.
+ * @param {Object} args - The arguments passed to the resolver, including email and password.
+ * @param {Object} context - The context object containing Prisma client and other data.
+ * @returns {Object} - An object containing a JWT token upon successful login.
+ * @throws {Error} - Throws an error if login fails due to various reasons.
+ */
 const login = async (parent, { email, password }, context) => {
   try {
     // Validate email format
@@ -130,6 +151,15 @@ const login = async (parent, { email, password }, context) => {
   }
 };
 
+/**
+ * Verify the user account by validating the provided email and OTP.
+ *
+ * @param {Object} parent - The parent object in the resolver chain.
+ * @param {Object} args - The arguments passed to the resolver containing the email and OTP.
+ * @param {Object} context - The context object containing the Prisma client and other data.
+ * @returns {String} A message indicating the result of the account verification process.
+ * @throws {Error} If the email format is invalid, OTP is incorrect or expired, or an unexpected error occurs.
+ */
 const verifyAccount = async (parent, { email, otp }, context) => {
   try {
     // Validate email format
@@ -160,6 +190,17 @@ const verifyAccount = async (parent, { email, otp }, context) => {
   }
 };
 
+/**
+ * Request a password reset for the user with the provided email.
+ * Validates the email format, generates a reset token, updates the user's resetToken and resetExpires fields,
+ * sends a reset email with the token, and returns a success message.
+ * If any errors occur during the process, they are caught, logged, and rethrown with a generic message.
+ *
+ * @param {Object} parent - The parent object (not used in this function).
+ * @param {Object} args - The arguments object containing the email for password reset.
+ * @param {Object} context - The context object containing Prisma client and other utilities.
+ * @returns {String} A message indicating the status of the password reset email sending.
+ */
 const requestPasswordReset = async (parent, { email }, context) => {
   try {
     // Validate email format
@@ -197,6 +238,16 @@ const requestPasswordReset = async (parent, { email }, context) => {
   }
 };
 
+/**
+ * Resets the user's password after validating the strength of the new password.
+ *
+ * @param {Object} parent - The parent object in the resolver chain.
+ * @param {Object} args - The arguments passed to the resolver containing the token and new password.
+ * @param {Object} context - The context object containing the Prisma client and other contextual data.
+ * @returns {String} A message indicating the success or failure of the password reset.
+ * @throws {Error} If the new password does not meet the required strength criteria.
+ * @throws {Error} If the token is invalid or expired.
+ */
 const resetPassword = async (parent, { token, newPassword }, context) => {
   try {
     const passwordStrength = checkPasswordStrength(newPassword);
