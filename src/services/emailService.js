@@ -10,24 +10,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.sendOTPEmail = (email, otp) => {
+exports.sendOTPEmail = async (email, otp) => {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_FROM,
     to: email,
     subject: "Verify Your Account",
     text: `Your OTP is ${otp}`,
   };
 
-  return transporter.sendMail(mailOptions);
+  return await transporter.sendMail(mailOptions);
 };
 
-exports.sendResetEmail = (email, resetToken) => {
+exports.sendResetEmail = async (email, resetToken) => {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_FROM,
     to: email,
     subject: "Password Reset Request",
     text: `Click here to reset your password: http://localhost:4000/reset-password?token=${resetToken}`,
   };
 
-  return transporter.sendMail(mailOptions);
+  return await transporter.sendMail(mailOptions);
 };
