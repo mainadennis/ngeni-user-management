@@ -2,27 +2,70 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { sendOTPEmail, sendResetEmail } = require("../services/emailService");
 const { generateOTP } = require("../utils/otpGenerator");
+const { checkPasswordStrength, validateEmail } = require("../utils/helpers");
 const crypto = require("crypto");
 
 const register = async (parent, { email, password }, context) => {
-  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    // Validate email format
+    if (!validateEmail(email)) {
+      throw new Error(
+        "Invalid email format. Please enter a valid email address."
+      );
+    }
 
-  const user = await context.prisma.user.create({
-    data: { email, password: hashedPassword },
-  });
+    const passwordStrength = checkPasswordStrength(password);
 
-  const otp = generateOTP();
-  await context.prisma.user.update({
-    where: { email },
-    data: { otp, otpExpiresAt: new Date(Date.now() + 15 * 60 * 1000) },
-  });
+    // Require a password strength score of at least 3
+    if (passwordStrength < 5) {
+      throw new Error(
+        "Password is too weak. Ensure it's at least 8 characters long and includes uppercase letters, numbers, and special characters."
+      );
+    }
 
-  await sendOTPEmail(email, otp);
+    // Check if the email already exists in the database
+    const existingUser = await context.prisma.user.findUnique({
+      where: { email },
+    });
 
-  return "Registration successful, verify your email";
+    if (existingUser) {
+      throw new Error(
+        "User with this email already exists. Please use a different email."
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await context.prisma.user.create({
+      data: { email, password: hashedPassword },
+    });
+
+    const otp = generateOTP();
+    await context.prisma.user.update({
+      where: { email },
+      data: { otp, otpExpiresAt: new Date(Date.now() + 15 * 60 * 1000) },
+    });
+
+    await sendOTPEmail(email, otp);
+
+    return "Registration successful, verify your email";
+  } catch (error) {
+    // Handle known and unexpected errors
+    console.error("Error during registration:", error.message);
+
+    // Re-throw the error to propagate it up the chain (e.g., to the GraphQL layer)
+    throw new Error(error.message || "Registration failed. Please try again.");
+  }
 };
 
 const login = async (parent, { email, password }, context) => {
+  // Validate email format
+  if (!validateEmail(email)) {
+    throw new Error(
+      "Invalid email format. Please enter a valid email address."
+    );
+  }
+
   const user = await context.prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.password))) {
     throw new Error("Invalid email or password");
@@ -38,6 +81,13 @@ const login = async (parent, { email, password }, context) => {
 };
 
 const verifyAccount = async (parent, { email, otp }, context) => {
+  // Validate email format
+  if (!validateEmail(email)) {
+    throw new Error(
+      "Invalid email format. Please enter a valid email address."
+    );
+  }
+
   const user = await context.prisma.user.findUnique({ where: { email } });
 
   if (!user || user.otp !== otp || user.otpExpiresAt < new Date()) {
@@ -53,6 +103,13 @@ const verifyAccount = async (parent, { email, otp }, context) => {
 };
 
 const requestPasswordReset = async (parent, { email }, context) => {
+  // Validate email format
+  if (!validateEmail(email)) {
+    throw new Error(
+      "Invalid email format. Please enter a valid email address."
+    );
+  }
+
   const user = await context.prisma.user.findUnique({ where: { email } });
 
   if (!user) {
@@ -73,6 +130,15 @@ const requestPasswordReset = async (parent, { email }, context) => {
 };
 
 const resetPassword = async (parent, { token, newPassword }, context) => {
+  const passwordStrength = checkPasswordStrength(newPassword);
+
+  // Require a password strength score of at least 3
+  if (passwordStrength < 3) {
+    throw new Error(
+      "Password is too weak. Ensure it's at least 8 characters long and includes uppercase letters, numbers, and special characters."
+    );
+  }
+
   const user = await context.prisma.user.findFirst({
     where: { resetToken: token, resetExpires: { gte: new Date() } },
   });
