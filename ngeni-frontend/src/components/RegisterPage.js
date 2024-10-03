@@ -7,7 +7,15 @@ import { REGISTER_USER } from "../graphql/mutations";
 const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [registerUser] = useMutation(REGISTER_USER);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [registerUser, { loading, error }] = useMutation(REGISTER_USER, {
+    onCompleted: (data) => {
+      setSuccessMessage("Registration successful");
+    },
+    onError: (err) => {
+      alert(err.message);
+    },
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,9 +47,17 @@ const RegisterPage = () => {
           required
           fullWidth
         />
-        <Button type="submit" variant="contained" color="primary">
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={loading}
+          color="primary"
+        >
           Register
         </Button>
+
+        {successMessage && <div>{successMessage}</div>}
+        {error && <div>{error.message}</div>}
       </form>
     </div>
   );
