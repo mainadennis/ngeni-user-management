@@ -9,6 +9,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Wait for the database to be ready
+        options: >-
+          --health-cmd "pg_isready -U testuser"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -21,5 +37,14 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          while ! nc -z localhost 5432; do
+            sleep 1
+          done
+
       - name: Run Tests
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
         run: npm test
