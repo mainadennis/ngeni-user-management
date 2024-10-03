@@ -43,6 +43,11 @@ jobs:
             sleep 1
           done
 
+      - name: Run Prisma Migrate
+        env:
+          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+        run: npx prisma migrate deploy
+
       - name: Run Tests
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
