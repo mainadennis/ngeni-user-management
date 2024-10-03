@@ -46,7 +46,7 @@ jobs:
       - name: Run Prisma Migrate
         env:
           DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
-        run: npx prisma migrate deploy
+        run: npx prisma migrate dev --name init
 
       - name: Run Tests
         env:
