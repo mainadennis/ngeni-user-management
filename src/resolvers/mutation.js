@@ -62,28 +62,70 @@ const login = async (parent, { email, password }, context) => {
   try {
     // Validate email format
     if (!validateEmail(email)) {
-      throw new Error(
-        "Invalid email format. Please enter a valid email address."
-      );
+      throw new Error("Invalid email or password");
     }
 
     const user = await context.prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+
+    if (!user) {
       throw new Error("Invalid email or password");
     }
-    if (!user.isVerified) {
-      throw new Error("Account not verified");
+
+    // Check if the account is locked
+    if (user.lockUntil && new Date() < user.lockUntil) {
+      const lockTimeLeft = Math.ceil((user.lockUntil - new Date()) / 60000); // in minutes
+      throw new Error(
+        `Account is locked. Try again in ${lockTimeLeft} minutes.`
+      );
     }
 
+    // Compare password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      // Increment failed login attempts
+      const updatedUser = await context.prisma.user.update({
+        where: { email },
+        data: { failedAttempts: { increment: 1 } },
+      });
+
+      // Lock the account if attempts exceed 5
+      if (updatedUser.failedAttempts >= 5) {
+        await context.prisma.user.update({
+          where: { email },
+          data: {
+            lockUntil: new Date(Date.now() + 15 * 60 * 1000), // Lock account for 15 minutes
+            failedAttempts: 0, // Reset failed attempts after locking
+          },
+        });
+        throw new Error(
+          "Account locked due to too many failed login attempts. Please try again in 15 minutes."
+        );
+      }
+
+      throw new Error("Invalid email or password");
+    }
+
+    // Check if the account is verified
+    if (!user.isVerified) {
+      throw new Error(
+        "Your account has not been verified. Please check your email."
+      );
+    }
+
+    // Reset failed attempts upon successful login
+    await context.prisma.user.update({
+      where: { email },
+      data: { failedAttempts: 0, lockUntil: null }, // Reset failedAttempts and lockUntil
+    });
+
+    // Generate JWT token
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
+
     return { token };
   } catch (error) {
-    // Handle known and unexpected errors
     console.error("Error during Login:", error.message);
-
-    // Re-throw the error to propagate it up the chain (e.g., to the GraphQL layer)
     throw new Error(error.message || "Login failed. Please try again.");
   }
 };
