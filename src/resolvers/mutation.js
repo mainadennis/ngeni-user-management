@@ -51,7 +51,7 @@ const register = async (parent, { email, password }, context) => {
     return "Registration successful, verify your email";
   } catch (error) {
     // Handle known and unexpected errors
-    console.error("Error during registration:", error.message);
+    // console.error("Error during registration:", error.message);
 
     // Re-throw the error to propagate it up the chain (e.g., to the GraphQL layer)
     throw new Error(error.message || "Registration failed. Please try again.");
@@ -125,7 +125,7 @@ const login = async (parent, { email, password }, context) => {
 
     return { token };
   } catch (error) {
-    console.error("Error during Login:", error.message);
+    // console.error("Error during Login:", error.message);
     throw new Error(error.message || "Login failed. Please try again.");
   }
 };
@@ -153,7 +153,7 @@ const verifyAccount = async (parent, { email, otp }, context) => {
     return "Account successfully verified";
   } catch (error) {
     // Handle known and unexpected errors
-    console.error("Error during verifyAccount:", error.message);
+    // console.error("Error during verifyAccount:", error.message);
 
     // Re-throw the error to propagate it up the chain (e.g., to the GraphQL layer)
     throw new Error(error.message || "verifyAccount failed. Please try again.");
@@ -188,7 +188,7 @@ const requestPasswordReset = async (parent, { email }, context) => {
     return "Password reset email sent";
   } catch (error) {
     // Handle known and unexpected errors
-    console.error("Error during requestPasswordReset:", error.message);
+    // console.error("Error during requestPasswordReset:", error.message);
 
     // Re-throw the error to propagate it up the chain (e.g., to the GraphQL layer)
     throw new Error(
@@ -225,7 +225,7 @@ const resetPassword = async (parent, { token, newPassword }, context) => {
     return "Password successfully reset";
   } catch (error) {
     // Handle known and unexpected errors
-    console.error("Error during resetPassword:", error.message);
+    // console.error("Error during resetPassword:", error.message);
 
     // Re-throw the error to propagate it up the chain (e.g., to the GraphQL layer)
     throw new Error(error.message || "resetPassword failed. Please try again.");
